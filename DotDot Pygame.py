@@ -4,7 +4,7 @@ from pygame.locals import *
 FPS = 60
 WINDOW_WIDTH = 640
 WINDOW_HEIGHT = 480
-DOT_SIZE = 8
+DOT_SIZE = 4
 GAP_SIZE = 40
 TOLERANCE = 15
 
@@ -20,14 +20,10 @@ GREEN  = (  0, 255,   0)
 YELLOW = (255, 255,   0)
 ORANGE = (255, 140,   0)
 GREY   = (200, 200, 200)
-T_BLUE = (  0,   0, 255, 64)
-T_RED  = (255,   0,   0, 64)
 
 BACKGROUND_COLOUR = GREY
 PLAYER_ONE_COLOUR = BLUE
 PLAYER_TWO_COLOUR = RED
-LAND_ONE_COLOUR = T_BLUE
-LAND_TWO_COLOUR = T_RED
 
 PLAYER_ONE = "1"
 PLAYER_TWO = "2"
@@ -47,23 +43,26 @@ class Dot():
             self.colour = PLAYER_TWO_COLOUR
         connected = False
         pixel_x, pixel_y = grid_to_pixel(grid_x, grid_y)
-        pygame.draw.circle(DISPLAYSURF, self.colour, (pixel_x, pixel_y), 4, 0)
+        pygame.draw.circle(DISPLAYSURF, self.colour, (pixel_x, pixel_y), DOT_SIZE, 0)
 
 class Land():
     def __init__(self, player, dots_array):
         self.pixel_array = []
         self.dots_obj_array = dots_array
+        self.enemy_dots = 0
         if player == PLAYER_ONE:
-            self.colour = LAND_ONE_COLOUR
+            self.colour = PLAYER_ONE_COLOUR
         else:
-            self.colour = LAND_TWO_COLOUR
+            self.colour = PLAYER_TWO_COLOUR
         for current in range (0, len(dots_array)):
             dot_coord = grid_to_pixel(dots_array[current].coord[0] + 1, dots_array[current].coord[1] + 1)
             self.pixel_array.append(dot_coord)
-        pygame.draw.polygon(DISPLAYSURF, self.colour, self.pixel_array)
+        self.enemy_dots = dot_counter(dots_array)
+        if self.enemy_dots > 0:
+            pygame.draw.polygon(DISPLAYSURF, self.colour, self.pixel_array)
 
 def main():
-    global FPS_CLOCK, DISPLAYSURF, grid_array
+    global FPS_CLOCK, DISPLAYSURF, grid_array, player_one_score, player_two_score
     pygame.init()
     FPS_CLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -83,6 +82,7 @@ def main():
     dot_placed = False
     connecting = False
     status_changed = False
+    score_changed = False
 
     DISPLAYSURF.fill(BACKGROUND_COLOUR)
     DISPLAYSURF.blit(title_surface_obj, title_rect_obj)
@@ -109,6 +109,10 @@ def main():
         if status_changed == True:
             update_game_status(game_status, status_colour)
             status_changed = False
+        if score_changed == True:
+            update_player_score(PLAYER_ONE, player_one_score)
+            update_player_score(PLAYER_TWO, player_two_score)
+            score_changed = False
         for event in pygame.event.get():
             if event.type == MOUSEBUTTONUP:
                 mouse_x, mouse_y = event.pos
@@ -138,6 +142,12 @@ def main():
                                         connecting = False
                                         land_player = chosen_dot.player
                                         new_land = Land(land_player, dots_array)
+                                        to_add_score = new_land.enemy_dots
+                                        if current_player == PLAYER_ONE:
+                                            player_one_score += to_add_score
+                                        else:
+                                            player_two_score += to_add_score
+                                        score_changed = True
                                 else:
                                     dots_array.append(chosen_dot)
                     elif (mouse_x >= connect_button_coord[0][0]) and (mouse_x <= connect_button_coord[1][0]) and \
@@ -264,6 +274,44 @@ def is_connection_valid(first_dot, second_dot):
         valid = True
     return valid
 
+def dot_counter(dots_array):
+    dots_counted = 0
+    smallest_x = WINDOW_WIDTH / GAP_SIZE
+    biggest_x = 0
+    for current in range (0, len(dots_array)):
+        dot_x_coord = dots_array[current].coord[0]
+        if dot_x_coord < smallest_x:
+            smallest_x = dot_x_coord
+        if dot_x_coord > biggest_x:
+            biggest_x = dot_x_coord
+    #print("smallest_x =", smallest_x, "biggest_x =", biggest_x)
+    for x_coordinate in range ((smallest_x + 1), biggest_x):
+        #print("\nx_coordinate =", x_coordinate)
+        current_x_dots_array = []
+        for current in range (0, len(dots_array)):
+            dot_x_coord = dots_array[current].coord[0]
+            if dot_x_coord == x_coordinate:
+                current_x_dots_array.append(dots_array[current])
+        for current_dot in range (1, len(current_x_dots_array)):
+            first_dot_y = current_x_dots_array[current_dot - 1].coord[1]
+            second_dot_y = current_x_dots_array[current_dot].coord[1]
+            if ((first_dot_y - second_dot_y) != 1) or ((first_dot_y - second_dot_y) != -1):
+                if first_dot_y > second_dot_y:
+                    to_check_y = first_dot_y - 1
+                    finish_y = second_dot_y
+                else:
+                    to_check_y = second_dot_y - 1
+                    finish_y = first_dot_y
+                while to_check_y > finish_y:
+                    #print("to_check_y =", to_check_y, "finish_y =", finish_y)
+                    if grid_array[to_check_y][x_coordinate] != None:
+                        grid_array[to_check_y][x_coordinate].player
+                        if grid_array[to_check_y][x_coordinate].player != current_x_dots_array[current_dot].player:
+                            dots_counted += 1
+                            #print("enemy dot found")
+                    to_check_y -= 1
+    return dots_counted
+
 def update_player_score(player, score):
     str_score = str(score)
     if player == PLAYER_ONE:
@@ -287,5 +335,3 @@ def update_player_score(player, score):
 
 if __name__ == '__main__':
     main()
-
-## - Dots within Land
