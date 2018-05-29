@@ -360,7 +360,7 @@ class MainMenu():
     def main(self):
         init_window()
 
-        DISPLAYSURF.blit(DOT_DOT, (0,0))
+        DISPLAYSURF.blit(DOT_DOT, ((WINDOW_WIDTH / 2) - (484 / 2), 0))
         
         settings_top_left = (WINDOW_WIDTH - (5 * GAP_SIZE), WINDOW_HEIGHT - (GAP_SIZE - 10))
         settings_button_coord = init_button("Settings", settings_top_left, BIG_BUTTON_WIDTH)
