@@ -23,6 +23,7 @@ YELLOW = (255, 255,   0)
 ORANGE = (255, 140,   0)
 GREY   = (200, 200, 200)
 
+NAME_COLOURS = {"RED" : RED, "BLUE" : BLUE, "GREEN" : GREEN, "YELLOW" : YELLOW, "ORANGE" : ORANGE}
 COLOURS = {"background" : GREY, "1" : BLUE, "2" : RED, "status" : BLACK}
 
 PLAYER_ONE = "1"
@@ -31,6 +32,29 @@ PLAYER_TWO = "2"
 DOT_DOT = pygame.image.load('menu dotdot.png')
 BACK_ARROW = pygame.image.load('back arrow.png')
 #ERROR_SOUND = pygame.mixer.Sound('beeps.wav')
+
+def load_settings():
+    message = "Settings Loaded"
+    values_array = []
+    try:
+        settings_file = open("settings.txt")
+        settings_string_array = settings_file.readlines()
+        settings_file.close()
+        for setting in range(0, len(settings_string_array)):
+            setting_string = settings_string_array[setting].split("=")
+            value = setting_string[1].strip()
+            try:
+                value_int = int(value)
+                values_array.append(value_int)
+            except ValueError:
+                values_array.append(value)
+        width = values_array[0]
+        height = values_array[1]
+        player_one_colour = values_array[2]
+        player_two_colour = values_array[3]
+    except FileNotFoundError:
+        message = "File Not Found"
+    return width, height, player_one_colour, player_two_colour
 
 def init_window():
     global FPS_CLOCK, DISPLAYSURF
@@ -397,6 +421,9 @@ settings = Settings()
 menu = MainMenu()
 end = False
 options = {"Game" : game.main, "Settings" : settings.main}
+WINDOW_WIDTH, WINDOW_HEIGHT, P1_COLOUR, P2_COLOUR = load_settings()
+COLOURS["1"] = NAME_COLOURS[P1_COLOUR]
+COLOURS["2"] = NAME_COLOURS[P2_COLOUR]
 
 while end != True:
     go_to = menu.main()
