@@ -152,7 +152,7 @@ class Game():
         DISPLAYSURF.blit(title_surface_obj, title_rect_obj)
         grid_array = self.init_grid()
         
-        connect_top_left = ((WINDOW_WIDTH / 2) + (3 * GAP_SIZE), WINDOW_HEIGHT - (GAP_SIZE - 10))
+        connect_top_left = (WINDOW_WIDTH - (5 * GAP_SIZE), WINDOW_HEIGHT - (GAP_SIZE - 10))
         connect_button_coord = init_button("Connect", connect_top_left, BIG_BUTTON_WIDTH)
         next_player_top_left = (GAP_SIZE, WINDOW_HEIGHT - (GAP_SIZE - 10))
         next_player_button_coord = init_button("Next Player", next_player_top_left, BIG_BUTTON_WIDTH)
@@ -184,14 +184,14 @@ class Game():
                     mouse_x, mouse_y = event.pos
                     grid_x, grid_y = pixel_to_grid(mouse_x, mouse_y)
                     if (dot_placed == False) and (connecting == False) and (grid_x != None) and (grid_y != None) and \
-                        (grid_x > 0) and (grid_y > 0) and (grid_x < 16) and (grid_y < 12):
+                        (grid_x > 0) and (grid_y > 0) and (grid_x < (WINDOW_WIDTH / GAP_SIZE)) and (grid_y < (WINDOW_HEIGHT / GAP_SIZE)):
                         valid = self.is_click_valid(grid_x, grid_y)
                         if valid == True:
                             self.init_dot(grid_x, grid_y, current_player)
                             dot_placed = True
                     elif connecting == True:
                         if (grid_x != None) and (grid_y != None):
-                            if (grid_x > 0) and (grid_y > 0) and (grid_x < 16) and (grid_y < 12):
+                            if (grid_x > 0) and (grid_y > 0) and (grid_x < (WINDOW_WIDTH / GAP_SIZE)) and (grid_y < (WINDOW_HEIGHT / GAP_SIZE)):
                                 valid = self.is_click_valid(grid_x, grid_y)
                                 if valid == False:
                                     array_x = grid_x - 1
@@ -362,7 +362,7 @@ class MainMenu():
 
         DISPLAYSURF.blit(DOT_DOT, (0,0))
         
-        settings_top_left = ((WINDOW_WIDTH / 2) + (3 * GAP_SIZE), WINDOW_HEIGHT - (GAP_SIZE - 10))
+        settings_top_left = (WINDOW_WIDTH - (5 * GAP_SIZE), WINDOW_HEIGHT - (GAP_SIZE - 10))
         settings_button_coord = init_button("Settings", settings_top_left, BIG_BUTTON_WIDTH)
         start_game_top_left = (GAP_SIZE, WINDOW_HEIGHT - (GAP_SIZE - 10))
         start_game_button_coord = init_button("Start Game", start_game_top_left, BIG_BUTTON_WIDTH)
@@ -395,7 +395,7 @@ class Settings():
     def main(self):
         init_window()
 
-        back_top_left = ((WINDOW_WIDTH / 2) + (3 * GAP_SIZE), WINDOW_HEIGHT - (GAP_SIZE - 10))
+        back_top_left = (WINDOW_WIDTH - (5 * GAP_SIZE), WINDOW_HEIGHT - (GAP_SIZE - 10))
         back_button_coord = init_button("Back to menu", back_top_left, BIG_BUTTON_WIDTH)
 
         mouse_x = 0
