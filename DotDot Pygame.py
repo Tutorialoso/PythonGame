@@ -29,6 +29,7 @@ PLAYER_ONE = "1"
 PLAYER_TWO = "2"
 
 DOT_DOT = pygame.image.load('menu dotdot.png')
+BACK_ARROW = pygame.image.load('back arrow.png')
 #ERROR_SOUND = pygame.mixer.Sound('beeps.wav')
 
 def init_window():
@@ -74,6 +75,11 @@ def grid_to_pixel(grid_x, grid_y):
     pixel_x = (grid_x * GAP_SIZE)
     pixel_y = (grid_y * GAP_SIZE)
     return pixel_x, pixel_y
+
+def terminate():
+    pygame.quit()
+    sys.exit()
+    pygame.display.update()
 
 class Dot():
     def __init__(self, player, grid_x, grid_y):
@@ -126,8 +132,10 @@ class Game():
         connect_button_coord = init_button("Connect", connect_top_left, BIG_BUTTON_WIDTH)
         next_player_top_left = (GAP_SIZE, WINDOW_HEIGHT - (GAP_SIZE - 10))
         next_player_button_coord = init_button("Next Player", next_player_top_left, BIG_BUTTON_WIDTH)
-        exit_top_left = (WINDOW_WIDTH - ((GAP_SIZE / 5) * 4), WINDOW_HEIGHT - (GAP_SIZE - 10))
-        exit_button_coord = init_button("x", exit_top_left, SMALL_BUTTON_WIDTH)
+        quit_top_left = (WINDOW_WIDTH - ((GAP_SIZE / 5) * 4), WINDOW_HEIGHT - (GAP_SIZE - 10))
+        quit_button_coord = init_button("", quit_top_left, SMALL_BUTTON_WIDTH)
+
+        DISPLAYSURF.blit(BACK_ARROW, quit_top_left)
 
         player_status = "Player " + current_player + "'s turn"
         connecting_status = "Connecting"
@@ -207,9 +215,11 @@ class Game():
                             game_status = connecting_status
                             status_colour = COLOURS[current_player]
                             status_changed = True
-                        elif (mouse_x >= exit_button_coord[0][0]) and (mouse_x <= exit_button_coord[1][0]) and \
-                           (mouse_y >= exit_button_coord[0][1]) and (mouse_y <= exit_button_coord[1][1]):
+                        elif (mouse_x >= quit_button_coord[0][0]) and (mouse_x <= quit_button_coord[1][0]) and \
+                           (mouse_y >= quit_button_coord[0][1]) and (mouse_y <= quit_button_coord[1][1]):
                             game_finished = True
+                elif event.type == QUIT:
+                    terminate()
             pygame.display.update()
             FPS_CLOCK.tick(FPS)
             
@@ -332,8 +342,6 @@ class MainMenu():
         settings_button_coord = init_button("Settings", settings_top_left, BIG_BUTTON_WIDTH)
         start_game_top_left = (GAP_SIZE, WINDOW_HEIGHT - (GAP_SIZE - 10))
         start_game_button_coord = init_button("Start Game", start_game_top_left, BIG_BUTTON_WIDTH)
-        exit_top_left = (WINDOW_WIDTH - ((GAP_SIZE / 5) * 4), WINDOW_HEIGHT - (GAP_SIZE - 10))
-        exit_button_coord = init_button("x", exit_top_left, SMALL_BUTTON_WIDTH)
 
         mouse_x = 0
         mouse_y = 0
@@ -352,10 +360,8 @@ class MainMenu():
                          (mouse_y >= settings_button_coord[0][1]) and (mouse_y <= settings_button_coord[1][1]):
                         button_clicked = True
                         button_type = "Settings"
-                    elif (mouse_x >= exit_button_coord[0][0]) and (mouse_x <= exit_button_coord[1][0]) and \
-                         (mouse_y >= exit_button_coord[0][1]) and (mouse_y <= exit_button_coord[1][1]):
-                        button_clicked = True
-                        button_type = "Quit"
+                elif event.type == QUIT:
+                    terminate()
             pygame.display.update()
             FPS_CLOCK.tick(FPS)
 
@@ -381,6 +387,8 @@ class Settings():
                        (mouse_y >= back_button_coord[0][1]) and (mouse_y <= back_button_coord[1][1]):
                         button_clicked = True
                         button_type = "Back"
+                elif event.type == QUIT:
+                    terminate()
             pygame.display.update()
             FPS_CLOCK.tick(FPS)
 
@@ -396,7 +404,3 @@ while end != True:
         options[go_to]()
     elif go_to == "Quit":
         end = True
-
-pygame.quit()
-sys.exit()
-pygame.display.update()
