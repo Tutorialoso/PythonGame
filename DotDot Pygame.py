@@ -1,6 +1,8 @@
 import random, pygame, sys
 from pygame.locals import *
 
+global WINDOW_WIDTH, WINDOW_HEIGHT, COLOURS, NAME_COLOURS, COLOURS_NAME
+
 FPS = 60
 WINDOW_WIDTH = 640
 WINDOW_HEIGHT = 480
@@ -24,6 +26,7 @@ ORANGE = (255, 140,   0)
 GREY   = (200, 200, 200)
 
 NAME_COLOURS = {"RED" : RED, "BLUE" : BLUE, "GREEN" : GREEN, "YELLOW" : YELLOW, "ORANGE" : ORANGE}
+COLOURS_NAME = {RED : "RED", BLUE : "BLUE", GREEN : "GREEN", YELLOW : "YELLOW", ORANGE : "ORANGE"}
 COLOURS = {"background" : GREY, "1" : BLUE, "2" : RED, "status" : BLACK}
 
 PLAYER_ONE = "1"
@@ -32,29 +35,6 @@ PLAYER_TWO = "2"
 DOT_DOT = pygame.image.load('menu dotdot.png')
 BACK_ARROW = pygame.image.load('back arrow.png')
 #ERROR_SOUND = pygame.mixer.Sound('beeps.wav')
-
-def load_settings():
-    message = "Settings Loaded"
-    values_array = []
-    try:
-        settings_file = open("settings.txt")
-        settings_string_array = settings_file.readlines()
-        settings_file.close()
-        for setting in range(0, len(settings_string_array)):
-            setting_string = settings_string_array[setting].split("=")
-            value = setting_string[1].strip()
-            try:
-                value_int = int(value)
-                values_array.append(value_int)
-            except ValueError:
-                values_array.append(value)
-        width = values_array[0]
-        height = values_array[1]
-        player_one_colour = values_array[2]
-        player_two_colour = values_array[3]
-    except FileNotFoundError:
-        message = "File Not Found"
-    return width, height, player_one_colour, player_two_colour
 
 def init_window():
     global FPS_CLOCK, DISPLAYSURF
@@ -397,11 +377,36 @@ class Settings():
 
         back_top_left = (WINDOW_WIDTH - (5 * GAP_SIZE), WINDOW_HEIGHT - (GAP_SIZE - 10))
         back_button_coord = init_button("Back to menu", back_top_left, BIG_BUTTON_WIDTH)
+        previous_res_top_left = ((GAP_SIZE / 5), (GAP_SIZE / 4) + GAP_SIZE)
+        previous_res_button_coord = init_button("<", previous_res_top_left, SMALL_BUTTON_WIDTH)
+        next_res_top_left = ((GAP_SIZE * 4) + (GAP_SIZE / 2), (GAP_SIZE / 4) + GAP_SIZE)
+        next_res_button_coord = init_button(">", next_res_top_left, SMALL_BUTTON_WIDTH)
+        save_top_left = (GAP_SIZE, WINDOW_HEIGHT - (GAP_SIZE - 10))
+        save_button_coord = init_button("Save and Apply", save_top_left, BIG_BUTTON_WIDTH)
+
+        resolution_font_obj = pygame.font.Font('freesansbold.ttf', 18)
+        to_display_res = (str(WINDOW_WIDTH) + "x" + str(WINDOW_HEIGHT))
+        to_display_colour_one = COLOURS_NAME[COLOURS["1"]]
+        to_display_colour_two = COLOURS_NAME[COLOURS["2"]]
+        to_displau_colours = [to_display_colour_one, to_display_colour_two]
+
+        resolution_header_centre = (((GAP_SIZE * 7) / 2) - ((GAP_SIZE / 4) * 3), (GAP_SIZE / 2))
+        resolution_header_surface_obj = resolution_font_obj.render("Resolution", True, BLACK)
+        resolution_header_rect_obj = resolution_header_surface_obj.get_rect()
+        resolution_header_rect_obj.center = resolution_header_centre
+        
+        resolution_centre = (((GAP_SIZE * 7) / 2) - ((GAP_SIZE / 4) * 3), (GAP_SIZE * 1.5))
+        resolution_surface_obj = resolution_font_obj.render(to_display_res, True, BLACK)
+        resolution_rect_obj = resolution_surface_obj.get_rect()
+        resolution_rect_obj.center = resolution_centre
+        
+        DISPLAYSURF.blit(resolution_header_surface_obj, resolution_header_rect_obj)
+        DISPLAYSURF.blit(resolution_surface_obj, resolution_rect_obj)
 
         mouse_x = 0
         mouse_y = 0
-        button_clicked = False
         button_type = None
+        resolutions = ["640x480", "800x600", "1280x720"]
 
         while button_type != "Back":
             for event in pygame.event.get():
@@ -409,25 +414,97 @@ class Settings():
                     mouse_x, mouse_y = event.pos
                     if (mouse_x >= back_button_coord[0][0]) and (mouse_x <= back_button_coord[1][0]) and \
                        (mouse_y >= back_button_coord[0][1]) and (mouse_y <= back_button_coord[1][1]):
-                        button_clicked = True
+                        button_type = "Back"
+                    elif (mouse_x >= previous_res_button_coord[0][0]) and (mouse_x <= previous_res_button_coord[1][0]) and \
+                       (mouse_y >= previous_res_button_coord[0][1]) and (mouse_y <= previous_res_button_coord[1][1]):
+                        for y in range(0, len(resolutions)):
+                            if (to_display_res == resolutions[y]) and (y != 0):
+                                to_display_res = resolutions[y - 1]
+                                self.update_display_resolution_selector(to_display_res)
+                    elif (mouse_x >= next_res_button_coord[0][0]) and (mouse_x <= next_res_button_coord[1][0]) and \
+                       (mouse_y >= next_res_button_coord[0][1]) and (mouse_y <= next_res_button_coord[1][1]):
+                        y = 0
+                        changed = False
+                        while (y < len(resolutions)) and (changed == False):
+                            if (to_display_res == resolutions[y]) and (y != (len(resolutions) - 1)):
+                                to_display_res = resolutions[y + 1]
+                                self.update_display_resolution_selector(to_display_res)
+                                changed = True
+                            y += 1
+                    elif (mouse_x >= save_button_coord[0][0]) and (mouse_x <= save_button_coord[1][0]) and \
+                       (mouse_y >= save_button_coord[0][1]) and (mouse_y <= save_button_coord[1][1]):
+                        self.save_settings(to_display_res, to_displau_colours)
+                        new_width, new_height, new_player_one_colour, new_player_two_colour = self.load_settings()
                         button_type = "Back"
                 elif event.type == QUIT:
                     terminate()
             pygame.display.update()
             FPS_CLOCK.tick(FPS)
 
+        return new_width, new_height, new_player_one_colour, new_player_two_colour
+
+    def load_settings(self):
+        message = "Settings Loaded"
+        values_array = []
+        try:
+            settings_file = open("settings.txt")
+            settings_string_array = settings_file.readlines()
+            settings_file.close()
+            for setting in range(0, len(settings_string_array)):
+                setting_string = settings_string_array[setting].split("=")
+                value = setting_string[1].strip()
+                try:
+                    value_int = int(value)
+                    values_array.append(value_int)
+                except ValueError:
+                    values_array.append(value)
+            width = values_array[0]
+            height = values_array[1]
+            player_one_colour = NAME_COLOURS[values_array[2]]
+            player_two_colour = NAME_COLOURS[values_array[3]]
+        except FileNotFoundError:
+            message = "File Not Found"
+        return width, height, player_one_colour, player_two_colour
+
+    def save_settings(self, resolution, colours):
+        settings_file = open("settings.txt", "w")
+        resolution_array = resolution.split("x")
+        width = "WINDOW_WIDTH=" + resolution_array[0] + "\n"
+        height = "WINDOW_HEIGHT=" + resolution_array[1] + "\n"
+        player_one_colour = "PLAYER_ONE=" + colours[0] + "\n"
+        player_two_colour = "PLAYER_TWO=" + colours[1] + "\n"
+        to_write_array = [width, height, player_one_colour, player_two_colour]
+        for element in to_write_array:
+            settings_file.write(element)
+        settings_file.close()
+
+    def update_display_resolution_selector(self, to_display_res):
+        resolution_font_obj = pygame.font.Font('freesansbold.ttf', 18)
+        x_coord = GAP_SIZE
+        y_coord = (GAP_SIZE / 4) + GAP_SIZE
+        width = GAP_SIZE * 3
+        height = GAP_SIZE
+        pygame.draw.rect(DISPLAYSURF, COLOURS["background"], (x_coord, y_coord, width, height))
+        resolution_centre = (((GAP_SIZE * 7) / 2) - ((GAP_SIZE / 4) * 3), (GAP_SIZE * 1.5))
+        resolution_surface_obj = resolution_font_obj.render(to_display_res, True, BLACK)
+        resolution_rect_obj = resolution_surface_obj.get_rect()
+        resolution_rect_obj.center = resolution_centre
+        DISPLAYSURF.blit(resolution_surface_obj, resolution_rect_obj)
+
+    #def update_player_colour_selector(self, to_display_colour, player):
+        
+
 game = Game()
 settings = Settings()
 menu = MainMenu()
 end = False
 options = {"Game" : game.main, "Settings" : settings.main}
-WINDOW_WIDTH, WINDOW_HEIGHT, P1_COLOUR, P2_COLOUR = load_settings()
-COLOURS["1"] = NAME_COLOURS[P1_COLOUR]
-COLOURS["2"] = NAME_COLOURS[P2_COLOUR]
 
 while end != True:
     go_to = menu.main()
-    if go_to in options:
+    if go_to == "Game":
         options[go_to]()
+    elif go_to == "Settings":
+        WINDOW_WIDTH, WINDOW_HEIGHT, COLOURS["1"], COLOURS["2"] = options[go_to]()
     elif go_to == "Quit":
         end = True
