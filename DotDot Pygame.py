@@ -44,18 +44,6 @@ def init_window():
     pygame.display.set_caption('DotDot')
     DISPLAYSURF.fill(COLOURS["background"])
 
-def init_button(text, top_left, button_width):
-    button_height = 25
-    bottom_right = (top_left[0] + button_width, top_left[1] + button_height)
-    button_coord = (top_left, bottom_right)
-    pygame.draw.rect(DISPLAYSURF, BLACK, (top_left[0], top_left[1], button_width, button_height))
-    button_font_obj = pygame.font.Font('freesansbold.ttf', 18)
-    button_surface_obj = button_font_obj.render(text, True, WHITE)
-    button_rect_obj = button_surface_obj.get_rect()
-    button_rect_obj.center = (top_left[0] + (button_width / 2), top_left[1] + 10)
-    DISPLAYSURF.blit(button_surface_obj, button_rect_obj)
-    return button_coord
-
 def pixel_to_grid(mouse_x, mouse_y):
         if ((mouse_x % GAP_SIZE) > (TOLERANCE) + 10):
             grid_x = (mouse_x / GAP_SIZE) + 1
@@ -109,6 +97,24 @@ class Land():
         if self.enemy_dots > 0:
             pygame.draw.polygon(DISPLAYSURF, self.colour, self.pixel_array)
 
+class Button():
+    def __init__(self, text, top_left, button_width):
+        button_height = 25
+        bottom_right = (top_left[0] + button_width, top_left[1] + button_height)
+        self.button_coord = (top_left, bottom_right)
+        pygame.draw.rect(DISPLAYSURF, BLACK, (top_left[0], top_left[1], button_width, button_height))
+        button_font_obj = pygame.font.Font('freesansbold.ttf', 18)
+        button_surface_obj = button_font_obj.render(text, True, WHITE)
+        button_rect_obj = button_surface_obj.get_rect()
+        button_rect_obj.center = (top_left[0] + (button_width / 2), top_left[1] + 10)
+        DISPLAYSURF.blit(button_surface_obj, button_rect_obj)
+    def is_clicked(self, mouse_x, mouse_y):
+        clicked = False
+        if (mouse_x >= self.button_coord[0][0]) and (mouse_x <= self.button_coord[1][0]) and \
+            (mouse_y >= self.button_coord[0][1]) and (mouse_y <= self.button_coord[1][1]):
+            clicked = True
+        return clicked
+
 class Game():
     def main(self):
         init_window()
@@ -133,11 +139,11 @@ class Game():
         grid_array = self.init_grid()
         
         connect_top_left = (WINDOW_WIDTH - (5 * GAP_SIZE), WINDOW_HEIGHT - (GAP_SIZE - 10))
-        connect_button_coord = init_button("Connect", connect_top_left, BIG_BUTTON_WIDTH)
+        connect_button = Button("Connect", connect_top_left, BIG_BUTTON_WIDTH)
         next_player_top_left = (GAP_SIZE, WINDOW_HEIGHT - (GAP_SIZE - 10))
-        next_player_button_coord = init_button("Next Player", next_player_top_left, BIG_BUTTON_WIDTH)
+        next_player_button = Button("Next Player", next_player_top_left, BIG_BUTTON_WIDTH)
         quit_top_left = (WINDOW_WIDTH - ((GAP_SIZE / 5) * 4), WINDOW_HEIGHT - (GAP_SIZE - 10))
-        quit_button_coord = init_button("", quit_top_left, SMALL_BUTTON_WIDTH)
+        quit_button = Button("", quit_top_left, SMALL_BUTTON_WIDTH)
 
         DISPLAYSURF.blit(BACK_ARROW, quit_top_left)
 
@@ -194,15 +200,13 @@ class Game():
                                             score_changed = True
                                     else:
                                         dots_array.append(chosen_dot)
-                        elif (mouse_x >= connect_button_coord[0][0]) and (mouse_x <= connect_button_coord[1][0]) and \
-                           (mouse_y >= connect_button_coord[0][1]) and (mouse_y <= connect_button_coord[1][1]):
+                        elif connect_button.is_clicked(mouse_x, mouse_y):
                             connecting = False
                             game_status = player_status
                             status_colour = COLOURS["status"]
                             status_changed = True
                     else:
-                        if (mouse_x >= next_player_button_coord[0][0]) and (mouse_x <= next_player_button_coord[1][0]) and \
-                           (mouse_y >= next_player_button_coord[0][1]) and (mouse_y <= next_player_button_coord[1][1]):
+                        if next_player_button.is_clicked(mouse_x, mouse_y):
                             if current_player == PLAYER_ONE:
                                 current_player = PLAYER_TWO
                             else:
@@ -212,15 +216,13 @@ class Game():
                             player_status = "Player " + current_player + "'s turn"
                             game_status  = player_status
                             status_colour = COLOURS["status"]
-                        elif (mouse_x >= connect_button_coord[0][0]) and (mouse_x <= connect_button_coord[1][0]) and \
-                           (mouse_y >= connect_button_coord[0][1]) and (mouse_y <= connect_button_coord[1][1]):
+                        elif connect_button.is_clicked(mouse_x, mouse_y):
                             dots_array = []
                             connecting = True
                             game_status = connecting_status
                             status_colour = COLOURS[current_player]
                             status_changed = True
-                        elif (mouse_x >= quit_button_coord[0][0]) and (mouse_x <= quit_button_coord[1][0]) and \
-                           (mouse_y >= quit_button_coord[0][1]) and (mouse_y <= quit_button_coord[1][1]):
+                        elif quit_button.is_clicked(mouse_x, mouse_y):
                             game_finished = True
                 elif event.type == QUIT:
                     terminate()
@@ -343,9 +345,9 @@ class MainMenu():
         DISPLAYSURF.blit(DOT_DOT, ((WINDOW_WIDTH / 2) - (484 / 2), 0))
         
         settings_top_left = (WINDOW_WIDTH - (5 * GAP_SIZE), WINDOW_HEIGHT - (GAP_SIZE - 10))
-        settings_button_coord = init_button("Settings", settings_top_left, BIG_BUTTON_WIDTH)
+        settings_button = Button("Settings", settings_top_left, BIG_BUTTON_WIDTH)
         start_game_top_left = (GAP_SIZE, WINDOW_HEIGHT - (GAP_SIZE - 10))
-        start_game_button_coord = init_button("Start Game", start_game_top_left, BIG_BUTTON_WIDTH)
+        start_game_button = Button("Start Game", start_game_top_left, BIG_BUTTON_WIDTH)
 
         mouse_x = 0
         mouse_y = 0
@@ -356,12 +358,10 @@ class MainMenu():
             for event in pygame.event.get():
                 if event.type == MOUSEBUTTONUP:
                     mouse_x, mouse_y = event.pos
-                    if (mouse_x >= start_game_button_coord[0][0]) and (mouse_x <= start_game_button_coord[1][0]) and \
-                       (mouse_y >= start_game_button_coord[0][1]) and (mouse_y <= start_game_button_coord[1][1]):
+                    if start_game_button.is_clicked(mouse_x, mouse_y):
                         button_clicked = True
                         button_type = "Game"
-                    elif (mouse_x >= settings_button_coord[0][0]) and (mouse_x <= settings_button_coord[1][0]) and \
-                         (mouse_y >= settings_button_coord[0][1]) and (mouse_y <= settings_button_coord[1][1]):
+                    elif settings_button.is_clicked(mouse_x, mouse_y):
                         button_clicked = True
                         button_type = "Settings"
                 elif event.type == QUIT:
@@ -376,53 +376,79 @@ class Settings():
         init_window()
 
         back_top_left = (WINDOW_WIDTH - (5 * GAP_SIZE), WINDOW_HEIGHT - (GAP_SIZE - 10))
-        back_button_coord = init_button("Back to menu", back_top_left, BIG_BUTTON_WIDTH)
+        back_button = Button("Back to menu", back_top_left, BIG_BUTTON_WIDTH)
+        
         previous_res_top_left = ((GAP_SIZE / 5), (GAP_SIZE / 4) + GAP_SIZE)
-        previous_res_button_coord = init_button("<", previous_res_top_left, SMALL_BUTTON_WIDTH)
+        previous_res_button = Button("<", previous_res_top_left, SMALL_BUTTON_WIDTH)
         next_res_top_left = ((GAP_SIZE * 4) + (GAP_SIZE / 2), (GAP_SIZE / 4) + GAP_SIZE)
-        next_res_button_coord = init_button(">", next_res_top_left, SMALL_BUTTON_WIDTH)
+        next_res_button = Button(">", next_res_top_left, SMALL_BUTTON_WIDTH)
+        
+        previous_col_one_top_left = ((GAP_SIZE / 5), (GAP_SIZE / 4) + (GAP_SIZE * 3.5))
+        previous_col_one_button = Button("<", previous_col_one_top_left, SMALL_BUTTON_WIDTH)
+        next_col_one_top_left = ((GAP_SIZE * 4) + (GAP_SIZE / 2), (GAP_SIZE / 4) + (GAP_SIZE * 3.5))
+        next_col_one_button = Button(">", next_col_one_top_left, SMALL_BUTTON_WIDTH)
+        previous_col_two_top_left = ((GAP_SIZE / 5), (GAP_SIZE / 4) + (GAP_SIZE * 6))
+        previous_col_two_button = Button("<", previous_col_two_top_left, SMALL_BUTTON_WIDTH)
+        next_col_two_top_left = ((GAP_SIZE * 4) + (GAP_SIZE / 2), (GAP_SIZE / 4) + (GAP_SIZE * 6))
+        next_col_two_button = Button(">", next_col_two_top_left, SMALL_BUTTON_WIDTH)
+        
         save_top_left = (GAP_SIZE, WINDOW_HEIGHT - (GAP_SIZE - 10))
-        save_button_coord = init_button("Save and Apply", save_top_left, BIG_BUTTON_WIDTH)
+        save_button = Button("Save and Apply", save_top_left, BIG_BUTTON_WIDTH)
 
-        resolution_font_obj = pygame.font.Font('freesansbold.ttf', 18)
+        header_font_obj = pygame.font.Font('freesansbold.ttf', 18)
         to_display_res = (str(WINDOW_WIDTH) + "x" + str(WINDOW_HEIGHT))
         to_display_colour_one = COLOURS_NAME[COLOURS["1"]]
         to_display_colour_two = COLOURS_NAME[COLOURS["2"]]
-        to_displau_colours = [to_display_colour_one, to_display_colour_two]
+        to_display_colours = [to_display_colour_one, to_display_colour_two]
+        new_width, new_height, new_player_one_colour, new_player_two_colour = WINDOW_WIDTH, WINDOW_HEIGHT, COLOURS["1"], COLOURS["2"]
 
         resolution_header_centre = (((GAP_SIZE * 7) / 2) - ((GAP_SIZE / 4) * 3), (GAP_SIZE / 2))
-        resolution_header_surface_obj = resolution_font_obj.render("Resolution", True, BLACK)
+        resolution_header_surface_obj = header_font_obj.render("Resolution", True, BLACK)
         resolution_header_rect_obj = resolution_header_surface_obj.get_rect()
         resolution_header_rect_obj.center = resolution_header_centre
         
         resolution_centre = (((GAP_SIZE * 7) / 2) - ((GAP_SIZE / 4) * 3), (GAP_SIZE * 1.5))
-        resolution_surface_obj = resolution_font_obj.render(to_display_res, True, BLACK)
+        resolution_surface_obj = header_font_obj.render(to_display_res, True, BLACK)
         resolution_rect_obj = resolution_surface_obj.get_rect()
         resolution_rect_obj.center = resolution_centre
-        
+
+        player_one_centre = (((GAP_SIZE * 7) / 2) - ((GAP_SIZE / 4) * 3), (GAP_SIZE * 3))
+        player_one_surface_obj = header_font_obj.render("Player 1 Colour", True, BLACK)
+        player_one_rect_obj = player_one_surface_obj.get_rect()
+        player_one_rect_obj.center = player_one_centre
+
+        player_two_centre = (((GAP_SIZE * 7) / 2) - ((GAP_SIZE / 4) * 3), (GAP_SIZE * 5.5))
+        player_two_surface_obj = header_font_obj.render("Player 2 Colour", True, BLACK)
+        player_two_rect_obj = player_two_surface_obj.get_rect()
+        player_two_rect_obj.center = player_two_centre
+
+        self.update_player_colour_selector(to_display_colours[0], PLAYER_ONE)
+        self.update_player_colour_selector(to_display_colours[1], PLAYER_TWO)
         DISPLAYSURF.blit(resolution_header_surface_obj, resolution_header_rect_obj)
         DISPLAYSURF.blit(resolution_surface_obj, resolution_rect_obj)
+        DISPLAYSURF.blit(player_one_surface_obj, player_one_rect_obj)
+        DISPLAYSURF.blit(player_two_surface_obj, player_two_rect_obj)
 
         mouse_x = 0
         mouse_y = 0
         button_type = None
         resolutions = ["640x480", "800x600", "1280x720"]
+        colours = []
+        for key in NAME_COLOURS:
+            colours.append(key)
 
         while button_type != "Back":
             for event in pygame.event.get():
                 if event.type == MOUSEBUTTONUP:
                     mouse_x, mouse_y = event.pos
-                    if (mouse_x >= back_button_coord[0][0]) and (mouse_x <= back_button_coord[1][0]) and \
-                       (mouse_y >= back_button_coord[0][1]) and (mouse_y <= back_button_coord[1][1]):
+                    if back_button.is_clicked(mouse_x, mouse_y):
                         button_type = "Back"
-                    elif (mouse_x >= previous_res_button_coord[0][0]) and (mouse_x <= previous_res_button_coord[1][0]) and \
-                       (mouse_y >= previous_res_button_coord[0][1]) and (mouse_y <= previous_res_button_coord[1][1]):
+                    elif previous_res_button.is_clicked(mouse_x, mouse_y):
                         for y in range(0, len(resolutions)):
                             if (to_display_res == resolutions[y]) and (y != 0):
                                 to_display_res = resolutions[y - 1]
                                 self.update_display_resolution_selector(to_display_res)
-                    elif (mouse_x >= next_res_button_coord[0][0]) and (mouse_x <= next_res_button_coord[1][0]) and \
-                       (mouse_y >= next_res_button_coord[0][1]) and (mouse_y <= next_res_button_coord[1][1]):
+                    elif next_res_button.is_clicked(mouse_x, mouse_y):
                         y = 0
                         changed = False
                         while (y < len(resolutions)) and (changed == False):
@@ -431,9 +457,54 @@ class Settings():
                                 self.update_display_resolution_selector(to_display_res)
                                 changed = True
                             y += 1
-                    elif (mouse_x >= save_button_coord[0][0]) and (mouse_x <= save_button_coord[1][0]) and \
-                       (mouse_y >= save_button_coord[0][1]) and (mouse_y <= save_button_coord[1][1]):
-                        self.save_settings(to_display_res, to_displau_colours)
+                    elif previous_col_one_button.is_clicked(mouse_x, mouse_y):
+                        for y in range(0, len(colours)):
+                            if (to_display_colours[0] == colours[y]) and (y != 0):
+                                if colours[y - 1] != to_display_colours[1]:
+                                    to_display_colours[0] = colours[y - 1]
+                                    self.update_player_colour_selector(to_display_colours[0], PLAYER_ONE)
+                                elif (colours[y - 1] != to_display_colours[1]) and ((y - 1) != 0):
+                                    to_display_colours[0] = colours[y - 2]
+                                    self.update_player_colour_selector(to_display_colours[0], PLAYER_ONE)
+                    elif next_col_one_button.is_clicked(mouse_x, mouse_y):
+                        y = 0
+                        changed = False
+                        while (y < len(colours)) and (changed == False):
+                            if (to_display_colours[0] == colours[y]) and (y != (len(colours) - 1)):
+                                if colours[y + 1] != to_display_colours[1]:
+                                    to_display_colours[0] = colours[y + 1]
+                                    self.update_player_colour_selector(to_display_colours[0], PLAYER_ONE)
+                                    changed = True
+                                elif (colours[y + 1] == to_display_colours[1]) and ((y + 1) != (len(colours) - 1)):
+                                    to_display_colours[1] = colours[y + 2]
+                                    self.update_player_colour_selector(to_display_colours[1], PLAYER_ONE)
+                                    changed = True
+                            y += 1
+                    elif previous_col_two_button.is_clicked(mouse_x, mouse_y):
+                        for y in range(0, len(colours)):
+                            if (to_display_colours[1] == colours[y]) and (y != 0):
+                                if colours[y - 1] != to_display_colours[0]:
+                                    to_display_colours[1] = colours[y - 1]
+                                    self.update_player_colour_selector(to_display_colours[1], PLAYER_TWO)
+                                elif (colours[y - 1] != to_display_colours[0]) and ((y - 1) != 0):
+                                    to_display_colours[1] = colours[y - 2]
+                                    self.update_player_colour_selector(to_display_colours[0], PLAYER_ONE)
+                    elif next_col_two_button.is_clicked(mouse_x, mouse_y):
+                        y = 0
+                        changed = False
+                        while (y < len(colours)) and (changed == False):
+                            if (to_display_colours[1] == colours[y]) and (y != (len(colours) - 1)):
+                                if colours[y + 1] != to_display_colours[0]:
+                                    to_display_colours[1] = colours[y + 1]
+                                    self.update_player_colour_selector(to_display_colours[1], PLAYER_TWO)
+                                    changed = True
+                                elif (colours[y + 1] == to_display_colours[0]) and ((y + 1) != (len(colours) - 1)):
+                                    to_display_colours[1] = colours[y + 2]
+                                    self.update_player_colour_selector(to_display_colours[1], PLAYER_TWO)
+                                    changed = True
+                            y += 1
+                    elif save_button.is_clicked(mouse_x, mouse_y):
+                        self.save_settings(to_display_res, to_display_colours)
                         new_width, new_height, new_player_one_colour, new_player_two_colour = self.load_settings()
                         button_type = "Back"
                 elif event.type == QUIT:
@@ -491,14 +562,22 @@ class Settings():
         resolution_rect_obj.center = resolution_centre
         DISPLAYSURF.blit(resolution_surface_obj, resolution_rect_obj)
 
-    #def update_player_colour_selector(self, to_display_colour, player):
-        
+    def update_player_colour_selector(self, to_display_colour, player):
+        x_coord = GAP_SIZE + (GAP_SIZE / 8)
+        if player == "1":
+            y_coord = (GAP_SIZE / 4) + (GAP_SIZE * 3.5)
+        else:
+            y_coord = (GAP_SIZE / 4) + (GAP_SIZE * 6)
+        width = GAP_SIZE * 3
+        height = (GAP_SIZE / 5) * 3
+        pygame.draw.rect(DISPLAYSURF, NAME_COLOURS[to_display_colour], (x_coord, y_coord, width, height))
 
 game = Game()
 settings = Settings()
 menu = MainMenu()
 end = False
 options = {"Game" : game.main, "Settings" : settings.main}
+WINDOW_WIDTH, WINDOW_HEIGHT, COLOURS["1"], COLOURS["2"] = settings.load_settings()
 
 while end != True:
     go_to = menu.main()
