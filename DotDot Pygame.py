@@ -1,7 +1,7 @@
 import random, pygame, sys
 from pygame.locals import *
 
-global WINDOW_WIDTH, WINDOW_HEIGHT, COLOURS, NAME_COLOURS, COLOURS_NAME
+global WINDOW_WIDTH, WINDOW_HEIGHT, COLOURS, NAME_TO_COLOURS, COLOURS_TO_NAME
 
 FPS = 60
 WINDOW_WIDTH = 640
@@ -25,8 +25,8 @@ YELLOW = (255, 255,   0)
 ORANGE = (255, 140,   0)
 GREY   = (200, 200, 200)
 
-NAME_COLOURS = {"RED" : RED, "BLUE" : BLUE, "GREEN" : GREEN, "YELLOW" : YELLOW, "ORANGE" : ORANGE}
-COLOURS_NAME = {RED : "RED", BLUE : "BLUE", GREEN : "GREEN", YELLOW : "YELLOW", ORANGE : "ORANGE"}
+NAME_TO_COLOURS = {"RED" : RED, "BLUE" : BLUE, "GREEN" : GREEN, "YELLOW" : YELLOW, "ORANGE" : ORANGE}
+COLOURS_TO_NAME = {RED : "RED", BLUE : "BLUE", GREEN : "GREEN", YELLOW : "YELLOW", ORANGE : "ORANGE"}
 COLOURS = {"background" : GREY, "1" : BLUE, "2" : RED, "status" : BLACK}
 
 PLAYER_ONE = "1"
@@ -114,6 +114,10 @@ class Button():
             (mouse_y >= self.button_coord[0][1]) and (mouse_y <= self.button_coord[1][1]):
             clicked = True
         return clicked
+
+class ErrorWindow():
+    def display(self, message):
+        print(message)
 
 class Game():
     def main(self):
@@ -397,8 +401,8 @@ class Settings():
 
         header_font_obj = pygame.font.Font('freesansbold.ttf', 18)
         to_display_res = (str(WINDOW_WIDTH) + "x" + str(WINDOW_HEIGHT))
-        to_display_colour_one = COLOURS_NAME[COLOURS["1"]]
-        to_display_colour_two = COLOURS_NAME[COLOURS["2"]]
+        to_display_colour_one = COLOURS_TO_NAME[COLOURS["1"]]
+        to_display_colour_two = COLOURS_TO_NAME[COLOURS["2"]]
         to_display_colours = [to_display_colour_one, to_display_colour_two]
         new_width, new_height, new_player_one_colour, new_player_two_colour = WINDOW_WIDTH, WINDOW_HEIGHT, COLOURS["1"], COLOURS["2"]
 
@@ -434,8 +438,9 @@ class Settings():
         button_type = None
         resolutions = ["640x480", "800x600", "1280x720"]
         colours = []
-        for key in NAME_COLOURS:
+        for key in NAME_TO_COLOURS:
             colours.append(key)
+        colours_error_message = "Player 1 and Player 2 cannot have the same colour."
 
         while button_type != "Back":
             for event in pygame.event.get():
@@ -458,55 +463,48 @@ class Settings():
                                 changed = True
                             y += 1
                     elif previous_col_one_button.is_clicked(mouse_x, mouse_y):
-                        for y in range(0, len(colours)):
-                            if (to_display_colours[0] == colours[y]) and (y != 0):
-                                if colours[y - 1] != to_display_colours[1]:
-                                    to_display_colours[0] = colours[y - 1]
-                                    self.update_player_colour_selector(to_display_colours[0], PLAYER_ONE)
-                                elif (colours[y - 1] != to_display_colours[1]) and ((y - 1) != 0):
-                                    to_display_colours[0] = colours[y - 2]
-                                    self.update_player_colour_selector(to_display_colours[0], PLAYER_ONE)
+                        i = 0
+                        finished = False
+                        while (i < len(colours)) and (finished == False):
+                            if (colours[i] == to_display_colours[0]) and (i != 0):
+                                to_display_colours[0] = colours[i - 1]
+                                self.update_player_colour_selector(to_display_colours[0], PLAYER_ONE)
+                                finished = True
+                            i += 1
                     elif next_col_one_button.is_clicked(mouse_x, mouse_y):
-                        y = 0
-                        changed = False
-                        while (y < len(colours)) and (changed == False):
-                            if (to_display_colours[0] == colours[y]) and (y != (len(colours) - 1)):
-                                if colours[y + 1] != to_display_colours[1]:
-                                    to_display_colours[0] = colours[y + 1]
-                                    self.update_player_colour_selector(to_display_colours[0], PLAYER_ONE)
-                                    changed = True
-                                elif (colours[y + 1] == to_display_colours[1]) and ((y + 1) != (len(colours) - 1)):
-                                    to_display_colours[1] = colours[y + 2]
-                                    self.update_player_colour_selector(to_display_colours[1], PLAYER_ONE)
-                                    changed = True
-                            y += 1
+                        i = 0
+                        finished = False
+                        while (i < len(colours)) and (finished == False):
+                            if (colours[i] == to_display_colours[0]) and (i != (len(colours) - 1)):
+                                to_display_colours[0] = colours[i + 1]
+                                self.update_player_colour_selector(to_display_colours[0], PLAYER_ONE)
+                                finished = True
+                            i += 1
                     elif previous_col_two_button.is_clicked(mouse_x, mouse_y):
-                        for y in range(0, len(colours)):
-                            if (to_display_colours[1] == colours[y]) and (y != 0):
-                                if colours[y - 1] != to_display_colours[0]:
-                                    to_display_colours[1] = colours[y - 1]
-                                    self.update_player_colour_selector(to_display_colours[1], PLAYER_TWO)
-                                elif (colours[y - 1] != to_display_colours[0]) and ((y - 1) != 0):
-                                    to_display_colours[1] = colours[y - 2]
-                                    self.update_player_colour_selector(to_display_colours[0], PLAYER_ONE)
+                        i = 0
+                        finished = False
+                        while (i < len(colours)) and (finished == False):
+                            if (colours[i] == to_display_colours[1]) and (i != 0):
+                                to_display_colours[1] = colours[i - 1]
+                                self.update_player_colour_selector(to_display_colours[1], PLAYER_TWO)
+                                finished = True
+                            i += 1
                     elif next_col_two_button.is_clicked(mouse_x, mouse_y):
-                        y = 0
-                        changed = False
-                        while (y < len(colours)) and (changed == False):
-                            if (to_display_colours[1] == colours[y]) and (y != (len(colours) - 1)):
-                                if colours[y + 1] != to_display_colours[0]:
-                                    to_display_colours[1] = colours[y + 1]
-                                    self.update_player_colour_selector(to_display_colours[1], PLAYER_TWO)
-                                    changed = True
-                                elif (colours[y + 1] == to_display_colours[0]) and ((y + 1) != (len(colours) - 1)):
-                                    to_display_colours[1] = colours[y + 2]
-                                    self.update_player_colour_selector(to_display_colours[1], PLAYER_TWO)
-                                    changed = True
-                            y += 1
+                        i = 0
+                        finished = False
+                        while (i < len(colours)) and (finished == False):
+                            if (colours[i] == to_display_colours[1]) and (i != (len(colours) - 1)):
+                                to_display_colours[1] = colours[i + 1]
+                                self.update_player_colour_selector(to_display_colours[1], PLAYER_TWO)
+                                finished = True
+                            i += 1
                     elif save_button.is_clicked(mouse_x, mouse_y):
-                        self.save_settings(to_display_res, to_display_colours)
-                        new_width, new_height, new_player_one_colour, new_player_two_colour = self.load_settings()
-                        button_type = "Back"
+                        if to_display_colours[0] != to_display_colours[1]:
+                            self.save_settings(to_display_res, to_display_colours)
+                            new_width, new_height, new_player_one_colour, new_player_two_colour = self.load_settings()
+                            button_type = "Back"
+                        else:
+                            error.display(colours_error_message)
                 elif event.type == QUIT:
                     terminate()
             pygame.display.update()
@@ -531,8 +529,8 @@ class Settings():
                     values_array.append(value)
             width = values_array[0]
             height = values_array[1]
-            player_one_colour = NAME_COLOURS[values_array[2]]
-            player_two_colour = NAME_COLOURS[values_array[3]]
+            player_one_colour = NAME_TO_COLOURS[values_array[2]]
+            player_two_colour = NAME_TO_COLOURS[values_array[3]]
         except FileNotFoundError:
             message = "File Not Found"
         return width, height, player_one_colour, player_two_colour
@@ -570,11 +568,12 @@ class Settings():
             y_coord = (GAP_SIZE / 4) + (GAP_SIZE * 6)
         width = GAP_SIZE * 3
         height = (GAP_SIZE / 5) * 3
-        pygame.draw.rect(DISPLAYSURF, NAME_COLOURS[to_display_colour], (x_coord, y_coord, width, height))
+        pygame.draw.rect(DISPLAYSURF, NAME_TO_COLOURS[to_display_colour], (x_coord, y_coord, width, height))
 
 game = Game()
 settings = Settings()
 menu = MainMenu()
+error = ErrorWindow()
 end = False
 options = {"Game" : game.main, "Settings" : settings.main}
 WINDOW_WIDTH, WINDOW_HEIGHT, COLOURS["1"], COLOURS["2"] = settings.load_settings()
